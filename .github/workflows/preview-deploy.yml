@@ -1,7 +1,8 @@
 name: Deploy preview
 
 on:
-  push:
+  pull_request:
+    types: [opened, reopened, labeled, synchronize]
     branches: [main]
 
 concurrency:
@@ -12,6 +13,7 @@ jobs:
   deploy:
     name: rsync to WHM preview
     runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'deploy-preview')
     environment: preview
     steps:
       - uses: actions/checkout@v4
