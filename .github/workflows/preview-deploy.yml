@@ -1,0 +1,62 @@
+name: Deploy preview
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: preview-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: rsync to WHM preview
+    runs-on: ubuntu-latest
+    environment: preview
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build PWA
+        run: pnpm --filter @nodeswars/pwa build
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: pdo, pdo_pgsql, sodium
+          tools: composer:v2
+
+      - name: Install PHP deps
+        working-directory: apps/api
+        run: composer install --no-dev --prefer-dist --no-progress --no-interaction --optimize-autoloader
+
+      - name: Rsync PWA to WHM preview
+        uses: easingthemes/ssh-deploy@v5
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.WHM_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.WHM_HOST }}
+          REMOTE_USER: ${{ secrets.WHM_USER }}
+          SOURCE: "apps/pwa/dist/"
+          TARGET: ${{ secrets.WHM_PREVIEW_PWA_PATH }}
+          ARGS: "-rlgoDzvc --delete"
+
+      - name: Rsync API to WHM preview
+        uses: easingthemes/ssh-deploy@v5
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.WHM_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.WHM_HOST }}
+          REMOTE_USER: ${{ secrets.WHM_USER }}
+          SOURCE: "apps/api/"
+          TARGET: ${{ secrets.WHM_PREVIEW_API_PATH }}
+          ARGS: "-rlgoDzvc --delete --exclude=tests --exclude=.env --exclude=.env.local"

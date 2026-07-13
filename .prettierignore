@@ -1,0 +1,11 @@
+node_modules
+dist
+build
+coverage
+.vite
+.turbo
+vendor
+apps/api/vendor
+pnpm-lock.yaml
+composer.lock
+*.tsbuildinfo

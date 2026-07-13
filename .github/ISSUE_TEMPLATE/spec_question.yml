@@ -1,0 +1,29 @@
+name: Spec question
+description: Ask a question about game rules, wire format, or ledger semantics.
+title: "spec: "
+labels: ["spec"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Link to code, RFC, or ledger block that raised the question.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - engine
+        - wire-format
+        - ledger
+        - security
+        - meshtastic
+        - other
+    validations:
+      required: true

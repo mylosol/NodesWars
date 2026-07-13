@@ -1,0 +1,56 @@
+name: Nightly
+
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+jobs:
+  full-check:
+    name: Full test and audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Audit
+        run: pnpm audit --audit-level=moderate || true
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: pdo, pdo_pgsql, sodium
+          tools: composer:v2
+
+      - name: PHP install
+        working-directory: apps/api
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: PHPUnit
+        working-directory: apps/api
+        run: ./vendor/bin/phpunit
+
+      - name: PHPStan
+        working-directory: apps/api
+        run: ./vendor/bin/phpstan analyse --no-progress
+
+      - name: Composer audit
+        working-directory: apps/api
+        run: composer audit || true
