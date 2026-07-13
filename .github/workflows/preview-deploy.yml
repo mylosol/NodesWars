@@ -44,36 +44,7 @@ jobs:
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install -y lftp
 
-      - name: Diagnose SFTP paths (read only, temporary)
-        env:
-          SSH_KEY: ${{ secrets.WHM_SSH_KEY }}
-          HOST: ${{ secrets.WHM_HOST }}
-          SSH_USER: ${{ secrets.WHM_USER }}
-          PORT: ${{ secrets.WHM_SSH_PORT }}
-        run: |
-          set -eo pipefail
-          KEY_FILE="$(mktemp)"
-          printf '%s\n' "$SSH_KEY" > "$KEY_FILE"
-          chmod 600 "$KEY_FILE"
-          CONNECT="ssh -a -x -i $KEY_FILE -p ${PORT:-22} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-          run_lftp() {
-            lftp -c "set sftp:connect-program \"$CONNECT\"; set sftp:auto-confirm yes; open -u $SSH_USER, sftp://$HOST; $1" || true
-          }
-          echo '=== starting directory (your SFTP home) ==='
-          run_lftp 'pwd; ls -la'
-          echo '=== domains/ (pwd prints its absolute path) ==='
-          run_lftp 'cd domains; pwd; ls -la'
-          echo '=== domains/preview.nodeswars.com/ ==='
-          run_lftp 'cd domains/preview.nodeswars.com; pwd; ls -la'
-          echo '=== domains/api-preview.nodeswars.com/ ==='
-          run_lftp 'cd domains/api-preview.nodeswars.com; pwd; ls -la'
-          rm -f "$KEY_FILE"
-
-      # TEMP: live deploy disabled while we confirm the correct SFTP paths from
-      # the diagnostic above. Remove this `if: false` and the diagnostic step
-      # once WHM_PREVIEW_PWA_PATH / WHM_PREVIEW_API_PATH are verified.
       - name: Deploy to WHM preview via SFTP
-        if: ${{ false }}
         env:
           SSH_KEY: ${{ secrets.WHM_SSH_KEY }}
           HOST: ${{ secrets.WHM_HOST }}
