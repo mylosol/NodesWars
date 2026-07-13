@@ -45,24 +45,29 @@ jobs:
         working-directory: apps/api
         run: composer install --no-dev --prefer-dist --no-progress --no-interaction --optimize-autoloader
 
-      - name: Rsync PWA to WHM production
-        uses: easingthemes/ssh-deploy@v6
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.WHM_SSH_KEY }}
-          REMOTE_HOST: ${{ secrets.WHM_HOST }}
-          REMOTE_USER: ${{ secrets.WHM_USER }}
-          REMOTE_PORT: ${{ secrets.WHM_SSH_PORT }}
-          SOURCE: "apps/pwa/dist/"
-          TARGET: ${{ secrets.WHM_PROD_PWA_PATH }}
-          ARGS: "-rlgoDzvc --delete"
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
 
-      - name: Rsync API to WHM production
-        uses: easingthemes/ssh-deploy@v6
+      - name: Deploy to WHM production via SFTP
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.WHM_SSH_KEY }}
-          REMOTE_HOST: ${{ secrets.WHM_HOST }}
-          REMOTE_USER: ${{ secrets.WHM_USER }}
-          REMOTE_PORT: ${{ secrets.WHM_SSH_PORT }}
-          SOURCE: "apps/api/"
-          TARGET: ${{ secrets.WHM_PROD_API_PATH }}
-          ARGS: "-rlgoDzvc --delete --exclude=tests --exclude=.env --exclude=.env.local"
+          SSH_KEY: ${{ secrets.WHM_SSH_KEY }}
+          HOST: ${{ secrets.WHM_HOST }}
+          SSH_USER: ${{ secrets.WHM_USER }}
+          PORT: ${{ secrets.WHM_SSH_PORT }}
+          PWA_TARGET: ${{ secrets.WHM_PROD_PWA_PATH }}
+          API_TARGET: ${{ secrets.WHM_PROD_API_PATH }}
+        run: |
+          set -eo pipefail
+          KEY_FILE="$(mktemp)"
+          printf '%s\n' "$SSH_KEY" > "$KEY_FILE"
+          chmod 600 "$KEY_FILE"
+          CONNECT="ssh -a -x -i $KEY_FILE -p ${PORT:-22} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+          lftp -c "
+            set sftp:connect-program \"$CONNECT\";
+            set net:max-retries 2;
+            set net:timeout 20;
+            open sftp://$SSH_USER@$HOST;
+            mirror --reverse --delete --verbose --no-perms --exclude '\.htaccess' apps/pwa/dist/ \"$PWA_TARGET\";
+            mirror --reverse --delete --verbose --no-perms --exclude 'tests/' --exclude '\.env' --exclude '\.htaccess' apps/api/ \"$API_TARGET\";
+          "
+          rm -f "$KEY_FILE"
