@@ -16,7 +16,7 @@ jobs:
     if: contains(github.event.pull_request.labels.*.name, 'deploy-preview')
     environment: preview
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v4
 
