@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NodesWars\Api;
 
+use Psr\Container\ContainerInterface;
 use Slim\App as SlimApp;
 use Slim\Factory\AppFactory;
 
@@ -12,6 +13,9 @@ use Slim\Factory\AppFactory;
  */
 final class App
 {
+    /**
+     * @return SlimApp<ContainerInterface|null>
+     */
     public static function bootstrap(): SlimApp
     {
         $app = AppFactory::create();
