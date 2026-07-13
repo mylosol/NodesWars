@@ -62,7 +62,8 @@ jobs:
             set sftp:connect-program \"$CONNECT\";
             set net:max-retries 2;
             set net:timeout 20;
-            open sftp://$SSH_USER@$HOST;
+            set sftp:auto-confirm yes;
+            open -u $SSH_USER, sftp://$HOST;
             mirror --reverse --delete --verbose --no-perms --exclude '\.htaccess' apps/pwa/dist/ \"$PWA_TARGET\";
             mirror --reverse --delete --verbose --no-perms --exclude 'tests/' --exclude '\.env' --exclude '\.htaccess' apps/api/ \"$API_TARGET\";
           "
