@@ -1,0 +1,7 @@
+# Route every request that is not a real file through Slim's front controller
+# (public/index.php), preserving the original path so Slim can match routes.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
