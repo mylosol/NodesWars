@@ -42,7 +42,7 @@ jobs:
         run: composer install --no-dev --prefer-dist --no-progress --no-interaction --optimize-autoloader
 
       - name: Rsync PWA to WHM preview
-        uses: easingthemes/ssh-deploy@v5
+        uses: easingthemes/ssh-deploy@v6
         env:
           SSH_PRIVATE_KEY: ${{ secrets.WHM_SSH_KEY }}
           REMOTE_HOST: ${{ secrets.WHM_HOST }}
@@ -52,7 +52,7 @@ jobs:
           ARGS: "-rlgoDzvc --delete"
 
       - name: Rsync API to WHM preview
-        uses: easingthemes/ssh-deploy@v5
+        uses: easingthemes/ssh-deploy@v6
         env:
           SSH_PRIVATE_KEY: ${{ secrets.WHM_SSH_KEY }}
           REMOTE_HOST: ${{ secrets.WHM_HOST }}
