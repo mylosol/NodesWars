@@ -65,6 +65,6 @@ jobs:
             set sftp:auto-confirm yes;
             open -u $SSH_USER, sftp://$HOST;
             mirror --reverse --delete --verbose --no-perms --exclude '\.htaccess' apps/pwa/dist/ \"$PWA_TARGET\";
-            mirror --reverse --delete --verbose --no-perms --exclude 'tests/' --exclude '\.env' --exclude '\.htaccess' apps/api/ \"$API_TARGET\";
+            mirror --reverse --delete --verbose --no-perms --exclude 'tests/' --exclude '\.env' apps/api/ \"$API_TARGET\";
           "
           rm -f "$KEY_FILE"
