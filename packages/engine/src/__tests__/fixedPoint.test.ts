@@ -71,3 +71,29 @@ describe('fixedPoint sqrt', () => {
     expect(() => fp.sqrt(fp.fromInt(-1))).toThrow();
   });
 });
+
+describe('fixedPoint trig', () => {
+  it('sinDeg at grid angles', () => {
+    expect(fp.sinDeg(fp.fromInt(0))).toBe(0n);
+    expect(fp.sinDeg(fp.fromInt(30))).toBe(32768n); // 0.5
+    expect(fp.sinDeg(fp.fromInt(90))).toBe(65536n); // 1.0
+    expect(fp.sinDeg(fp.fromInt(150))).toBe(32768n); // sin150 = 0.5
+    expect(fp.sinDeg(fp.fromInt(180))).toBe(0n);
+    expect(fp.sinDeg(fp.fromInt(210))).toBe(-32768n); // sin210 = -0.5
+    expect(fp.sinDeg(fp.fromInt(270))).toBe(-65536n);
+    expect(fp.sinDeg(fp.fromInt(360))).toBe(0n);
+  });
+  it('normalizes out-of-range and negative angles', () => {
+    expect(fp.sinDeg(fp.fromInt(390))).toBe(fp.sinDeg(fp.fromInt(30)));
+    expect(fp.sinDeg(fp.fromInt(-30))).toBe(-32768n);
+  });
+  it('cosDeg', () => {
+    expect(fp.cosDeg(fp.fromInt(0))).toBe(65536n);
+    expect(fp.cosDeg(fp.fromInt(60))).toBe(32768n); // cos60 = 0.5
+    expect(fp.cosDeg(fp.fromInt(90))).toBe(0n);
+  });
+  it('interpolates on the 1/16 grid (45 deg)', () => {
+    // round(sin45 * 65536) = 46341
+    expect(fp.sinDeg(fp.fromInt(45))).toBe(46341n);
+  });
+});

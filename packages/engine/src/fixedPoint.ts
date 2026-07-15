@@ -2,6 +2,8 @@
 // A Fixed is a signed 64-bit integer equal to round(real * 2^16).
 // See docs/superpowers/specs/2026-07-15-engine-fixedpoint-design.md.
 
+import { SINE_TABLE } from './sineTable.js';
+
 export type Fixed = bigint & { readonly __brand: 'Fixed' };
 
 export const SCALE = 65536n; // 1 << 16
@@ -94,4 +96,34 @@ export function isqrt(n: bigint): bigint {
 export function sqrt(x: Fixed): Fixed {
   if (x < 0n) throw new Error('fixedPoint.sqrt of negative');
   return asI64(isqrt(x * SCALE));
+}
+
+const DEG360 = 360n * SCALE;
+const DEG180 = 180n * SCALE;
+const DEG90 = 90n * SCALE;
+const STEP = SCALE / 16n; // fixed units per 1/16 degree = 4096
+const TABLE_MAX = 1440; // last table index
+
+/** Sine for a fixed angle in [0, 90*SCALE], via table lookup + linear interpolation. */
+function sineFirstQuadrant(a: bigint): bigint {
+  const i = a / STEP; // floor; a >= 0
+  if (i >= BigInt(TABLE_MAX)) return BigInt(SINE_TABLE[TABLE_MAX]!);
+  const idx = Number(i);
+  const lo = BigInt(SINE_TABLE[idx]!);
+  const hi = BigInt(SINE_TABLE[idx + 1]!);
+  const frac = a - i * STEP; // [0, STEP)
+  return lo + ((hi - lo) * frac) / STEP; // trunc toward zero
+}
+
+export function sinDeg(angle: Fixed): Fixed {
+  let a = angle % DEG360;
+  if (a < 0n) a += DEG360;
+  if (a < DEG90) return asI64(sineFirstQuadrant(a));
+  if (a < DEG180) return asI64(sineFirstQuadrant(DEG180 - a));
+  if (a < 3n * DEG90) return asI64(-sineFirstQuadrant(a - DEG180));
+  return asI64(-sineFirstQuadrant(DEG360 - a));
+}
+
+export function cosDeg(angle: Fixed): Fixed {
+  return sinDeg(asI64(DEG90 - angle));
 }
