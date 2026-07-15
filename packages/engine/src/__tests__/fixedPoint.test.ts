@@ -52,3 +52,22 @@ describe('fixedPoint exact constructors', () => {
     expect(fp.fromString('3')).toBe(fp.fromInt(3));
   });
 });
+
+describe('fixedPoint sqrt', () => {
+  it('sqrt of perfect squares', () => {
+    expect(fp.sqrt(fp.fromInt(4))).toBe(fp.fromInt(2));
+    expect(fp.sqrt(fp.fromInt(9))).toBe(fp.fromInt(3));
+    expect(fp.sqrt(fp.fromInt(0))).toBe(fp.fromInt(0));
+  });
+  it('sqrt(mul(x,x)) == abs(x) for in-range x', () => {
+    const x = fp.fromInt(123);
+    expect(fp.sqrt(fp.mul(x, x))).toBe(fp.abs(x));
+  });
+  it('sqrt of 2 is ~1.4142', () => {
+    // floor(sqrt(2) * 65536) = 92681
+    expect(fp.sqrt(fp.fromInt(2))).toBe(92681n);
+  });
+  it('throws on negative', () => {
+    expect(() => fp.sqrt(fp.fromInt(-1))).toThrow();
+  });
+});

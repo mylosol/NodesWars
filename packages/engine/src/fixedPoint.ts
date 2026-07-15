@@ -76,3 +76,22 @@ export function fromString(s: string): Fixed {
   const mag = intPart * SCALE + (fracNum * SCALE) / den; // trunc toward zero
   return asI64(neg ? -mag : mag);
 }
+
+/** Floor integer square root of a non-negative bigint (Newton's method, integer-only). */
+export function isqrt(n: bigint): bigint {
+  if (n < 0n) throw new Error('isqrt of negative');
+  if (n < 2n) return n;
+  let x0 = n >> 1n;
+  let x1 = (x0 + n / x0) >> 1n;
+  while (x1 < x0) {
+    x0 = x1;
+    x1 = (x0 + n / x0) >> 1n;
+  }
+  return x0;
+}
+
+/** sqrt(x) with x >= 0: isqrt(x_stored * SCALE) gives floor(sqrt(real) * SCALE). */
+export function sqrt(x: Fixed): Fixed {
+  if (x < 0n) throw new Error('fixedPoint.sqrt of negative');
+  return asI64(isqrt(x * SCALE));
+}
