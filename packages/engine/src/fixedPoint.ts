@@ -50,3 +50,29 @@ export function div(a: Fixed, b: Fixed): Fixed {
   if (b === 0n) throw new Error('fixedPoint.div by zero');
   return asI64((a * SCALE) / b);
 }
+
+/** Exact value with magnitude |int| + num/den; a negative int makes the whole value negative. */
+export function fromParts(int: number, num: number, den: number): Fixed {
+  if (!Number.isInteger(int) || !Number.isInteger(num) || !Number.isInteger(den)) {
+    throw new Error('fromParts expects integers');
+  }
+  if (den <= 0) throw new Error('fromParts den must be positive');
+  if (num < 0) throw new Error('fromParts num must be non-negative');
+  const whole = BigInt(int) * SCALE;
+  const frac = (BigInt(num) * SCALE) / BigInt(den); // trunc toward zero
+  const signed = int < 0 ? whole - frac : whole + frac;
+  return asI64(signed);
+}
+
+/** Exact decimal parse, e.g. "9.81", "-0.5", "3". No floats. */
+export function fromString(s: string): Fixed {
+  const m = /^(-?)(\d+)(?:\.(\d+))?$/.exec(s.trim());
+  if (!m) throw new Error(`fromString cannot parse ${s}`);
+  const neg = m[1] === '-';
+  const intPart = BigInt(m[2] as string);
+  const fracDigits = m[3] ?? '';
+  const den = 10n ** BigInt(fracDigits.length);
+  const fracNum = fracDigits === '' ? 0n : BigInt(fracDigits);
+  const mag = intPart * SCALE + (fracNum * SCALE) / den; // trunc toward zero
+  return asI64(neg ? -mag : mag);
+}

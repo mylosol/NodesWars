@@ -39,3 +39,16 @@ describe('fixedPoint mul/div', () => {
     expect(() => fp.div(fp.fromInt(1), fp.fromInt(0))).toThrow();
   });
 });
+
+describe('fixedPoint exact constructors', () => {
+  it('fromParts builds exact rationals', () => {
+    expect(fp.fromParts(0, 1, 2)).toBe(32768n); // 0.5
+    expect(fp.fromParts(2, 1, 4)).toBe(147456n); // 2.25
+    expect(fp.fromParts(-1, 1, 2)).toBe(-98304n); // -(1 + 1/2) = -1.5
+  });
+  it('fromString parses exact decimals', () => {
+    expect(fp.fromString('9.81')).toBe(fp.fromParts(9, 81, 100));
+    expect(fp.fromString('-0.5')).toBe(-32768n);
+    expect(fp.fromString('3')).toBe(fp.fromInt(3));
+  });
+});
