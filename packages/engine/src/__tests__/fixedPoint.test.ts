@@ -1,0 +1,22 @@
+import { describe, expect, it } from 'vitest';
+import * as fp from '../fixedPoint.js';
+
+describe('fixedPoint core', () => {
+  it('round-trips whole numbers', () => {
+    expect(fp.fromInt(3)).toBe(3n * fp.SCALE);
+    expect(fp.toNumber(fp.fromInt(3))).toBe(3);
+  });
+  it('adds and subtracts', () => {
+    expect(fp.add(fp.fromInt(2), fp.fromInt(5))).toBe(fp.fromInt(7));
+    expect(fp.sub(fp.fromInt(2), fp.fromInt(5))).toBe(fp.fromInt(-3));
+  });
+  it('negates and abs', () => {
+    expect(fp.neg(fp.fromInt(4))).toBe(fp.fromInt(-4));
+    expect(fp.abs(fp.fromInt(-4))).toBe(fp.fromInt(4));
+  });
+  it('compares', () => {
+    expect(fp.cmp(fp.fromInt(1), fp.fromInt(2))).toBe(-1);
+    expect(fp.cmp(fp.fromInt(2), fp.fromInt(2))).toBe(0);
+    expect(fp.cmp(fp.fromInt(3), fp.fromInt(2))).toBe(1);
+  });
+});
