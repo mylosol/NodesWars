@@ -1,11 +1,11 @@
 // Blast damage falloff. Stub only.
 
-import type { LatLon } from './trajectory.js';
+import type { Vec2 } from './trajectory.js';
 
 export interface BlastInput {
-  readonly center: LatLon;
+  readonly center: Vec2;
   readonly weaponId: string;
-  readonly targets: readonly LatLon[];
+  readonly targets: readonly Vec2[];
 }
 
 export interface BlastHit {
