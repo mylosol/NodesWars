@@ -1,4 +1,16 @@
 {
-  "$schema": "./engine-cases.schema.json",
-  "cases": []
+  "cases": [
+    { "id": "fromInt-3", "op": "fromInt", "args": [3], "expected": "196608" },
+    { "id": "add", "op": "add", "args": ["131072", "327680"], "expected": "458752" },
+    { "id": "sub-neg", "op": "sub", "args": ["131072", "327680"], "expected": "-196608" },
+    { "id": "mul-neg-half", "op": "mul", "args": ["-98304", "32768"], "expected": "-49152" },
+    { "id": "div-half", "op": "div", "args": ["65536", "131072"], "expected": "32768" },
+    { "id": "div-neg", "op": "div", "args": ["-65536", "131072"], "expected": "-32768" },
+    { "id": "fromString-981", "op": "fromString", "args": ["9.81"], "expected": "642908" },
+    { "id": "fromParts-half", "op": "fromParts", "args": [0, 1, 2], "expected": "32768" },
+    { "id": "sqrt-2", "op": "sqrt", "args": ["131072"], "expected": "92681" },
+    { "id": "sin-30", "op": "sinDeg", "args": ["1966080"], "expected": "32768" },
+    { "id": "sin-210", "op": "sinDeg", "args": ["13762560"], "expected": "-32768" },
+    { "id": "cos-60", "op": "cosDeg", "args": ["3932160"], "expected": "32768" }
+  ]
 }
