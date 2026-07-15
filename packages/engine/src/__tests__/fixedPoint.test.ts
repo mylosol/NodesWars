@@ -20,3 +20,22 @@ describe('fixedPoint core', () => {
     expect(fp.cmp(fp.fromInt(3), fp.fromInt(2))).toBe(1);
   });
 });
+
+describe('fixedPoint mul/div', () => {
+  it('multiplies', () => {
+    expect(fp.mul(fp.fromInt(3), fp.fromInt(4))).toBe(fp.fromInt(12));
+    // 1.5 * 0.5 = 0.75 -> stored 49152
+    expect(fp.mul(98304n as fp.Fixed, 32768n as fp.Fixed)).toBe(49152n);
+  });
+  it('multiply truncates toward zero for negatives', () => {
+    // (-1.5) * 0.5 = -0.75 -> stored -49152 exactly
+    expect(fp.mul(-98304n as fp.Fixed, 32768n as fp.Fixed)).toBe(-49152n);
+  });
+  it('divides', () => {
+    expect(fp.div(fp.fromInt(1), fp.fromInt(2))).toBe(32768n); // 0.5
+    expect(fp.div(fp.fromInt(-1), fp.fromInt(2))).toBe(-32768n);
+  });
+  it('throws on divide by zero', () => {
+    expect(() => fp.div(fp.fromInt(1), fp.fromInt(0))).toThrow();
+  });
+});

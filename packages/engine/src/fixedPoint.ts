@@ -40,3 +40,13 @@ export function sub(a: Fixed, b: Fixed): Fixed {
 export function cmp(a: Fixed, b: Fixed): -1 | 0 | 1 {
   return a < b ? -1 : a > b ? 1 : 0;
 }
+
+// bigint `/` truncates toward zero, matching PHP intdiv. This is the parity contract.
+export function mul(a: Fixed, b: Fixed): Fixed {
+  return asI64((a * b) / SCALE);
+}
+
+export function div(a: Fixed, b: Fixed): Fixed {
+  if (b === 0n) throw new Error('fixedPoint.div by zero');
+  return asI64((a * SCALE) / b);
+}
