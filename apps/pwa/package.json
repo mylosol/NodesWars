@@ -15,7 +15,7 @@
   "dependencies": {
     "@meshtastic/js": "2.5.9-3",
     "@noble/curves": "^1.4.0",
-    "@sentry/react": "^8.26.0",
+    "@sentry/react": "^10.67.0",
     "cbor-x": "^1.6.0",
     "dexie": "^4.0.8",
     "framer-motion": "^11.3.28",
