@@ -8,6 +8,29 @@ updates:
     labels:
       - "deps"
       - "npm"
+    # Packages that must move together, or the lockfile resolves to a
+    # combination that installs but breaks (react-dom 19 against react 18).
+    groups:
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      vite-toolchain:
+        patterns:
+          - "vite"
+          - "vitest"
+          - "@vitejs/*"
+          - "vite-plugin-*"
+          - "@vitest/*"
+          - "jsdom"
+      lint-and-format:
+        patterns:
+          - "eslint"
+          - "eslint-*"
+          - "@typescript-eslint/*"
+          - "prettier"
 
   - package-ecosystem: "composer"
     directory: "/apps/api"
