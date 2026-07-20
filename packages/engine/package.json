@@ -12,14 +12,17 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist", "src"],
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build": "tsc -b",
     "test": "vitest run",
     "typecheck": "tsc -b --pretty"
   },
   "devDependencies": {
-    "typescript": "5.5.4",
-    "vitest": "2.0.5"
+    "typescript": "5.9.3",
+    "vitest": "4.1.10"
   }
 }
