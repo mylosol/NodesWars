@@ -27,10 +27,20 @@ use PHPUnit\Framework\TestCase;
  */
 final class FixtureTest extends TestCase
 {
-    private const RAW_STRING_OPS = [
-        'fromString',
-        'fixedPoint.fromString',
-        'blast.radiusFor',
+    /**
+     * Argument positions holding literal text rather than a Fixed int64. Per
+     * argument, not per op, because blast.damageAt takes a weapon id *and* a
+     * Fixed distance. The TypeScript runner keeps an identical table.
+     *
+     * @var array<string, list<int>>
+     */
+    private const RAW_STRING_ARGS = [
+        'fixedPoint.fromString' => [0],
+        'blast.radiusFor' => [0],
+        'blast.damageFor' => [0],
+        'blast.damageAt' => [0],
+        'loot.applyReward' => [2],
+        'loot.effectiveMultiplier' => [1],
     ];
 
     /**
@@ -150,7 +160,17 @@ final class FixtureTest extends TestCase
             'fixedPoint.cosDeg' => FixedPoint::cosDeg(self::intArg($args, 0)),
 
             'loot.multiplier' => Loot::multiplier(self::intArg($args, 0)),
-            'loot.applyReward' => Loot::applyReward(self::intArg($args, 0), self::intArg($args, 1)),
+            'loot.applyReward' => \count($args) > 2
+                ? Loot::applyReward(
+                    self::intArg($args, 0),
+                    self::intArg($args, 1),
+                    self::stringArg($args, 2),
+                )
+                : Loot::applyReward(self::intArg($args, 0), self::intArg($args, 1)),
+            'loot.effectiveMultiplier' => Loot::effectiveMultiplier(
+                self::intArg($args, 0),
+                self::stringArg($args, 1),
+            ),
 
             'scoring.split' => Scoring::split(self::intArg($args, 0)),
 
@@ -165,6 +185,11 @@ final class FixtureTest extends TestCase
             'levelCurve.levelForXp' => LevelCurve::levelForXp(self::intArg($args, 0)),
 
             'blast.radiusFor' => Blast::radiusFor(self::stringArg($args, 0)),
+            'blast.damageFor' => Blast::damageFor(self::stringArg($args, 0)),
+            'blast.damageAt' => Blast::damageAt(
+                self::stringArg($args, 0),
+                self::intArg($args, 1),
+            ),
 
             'fortify.decayFactor' => Fortify::decayFactor(self::intArg($args, 0)),
             'fortify.remainingShield' => Fortify::remainingShield(
@@ -181,11 +206,21 @@ final class FixtureTest extends TestCase
         };
     }
 
-    public function testRawStringOpsAreDocumented(): void
+    public function testRawStringArgsMatchTheTypeScriptRunner(): void
     {
-        // Guards the encoding contract: these ops take literal text, and the
-        // TypeScript runner keeps the same list.
-        self::assertContains('blast.radiusFor', self::RAW_STRING_OPS);
-        self::assertContains('fromString', self::RAW_STRING_OPS);
+        // Guards the encoding contract. If these drift, a fixture argument gets
+        // parsed as a Fixed in one engine and as text in the other, and the
+        // parity suite starts comparing unrelated values.
+        self::assertSame(
+            [
+                'fixedPoint.fromString' => [0],
+                'blast.radiusFor' => [0],
+                'blast.damageFor' => [0],
+                'blast.damageAt' => [0],
+                'loot.applyReward' => [2],
+                'loot.effectiveMultiplier' => [1],
+            ],
+            self::RAW_STRING_ARGS,
+        );
     }
 }

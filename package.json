@@ -16,7 +16,9 @@
     "typecheck": "tsc -b --pretty",
     "lint": "pnpm -r --if-present lint",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "gen:weapons": "node scripts/gen-weapons.mjs",
+    "gen:weapons:check": "node scripts/gen-weapons.mjs --check"
   },
   "devDependencies": {
     "prettier": "3.9.5",

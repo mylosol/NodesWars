@@ -5,35 +5,38 @@ declare(strict_types=1);
 namespace NodesWars\Api\Engine;
 
 /**
- * Blast geometry. Port of packages/engine/src/blast.ts.
+ * Blast geometry and damage. Port of packages/engine/src/blast.ts.
  *
- * Distance from impact and whether it fell inside the weapon radius. Damage
- * magnitude is not modelled on either side; per-weapon damage values are not
- * specified yet.
+ * The weapon roster lives in data/weapons.json and is compiled into
+ * Weapons.php. Adding, removing or retuning a weapon is a data edit.
  */
 final class Blast
 {
-    /** @var array<string, int> */
-    private const RADIUS_M_INT = [
-        'scout' => 15,
-        'light' => 25,
-        'medium' => 50,
-        'heavy' => 100,
-        'siege' => 200,
-    ];
-
     public static function isWeaponId(string $id): bool
     {
-        return \array_key_exists($id, self::RADIUS_M_INT);
+        return \array_key_exists($id, Weapons::ALL);
     }
 
-    public static function radiusFor(string $weaponId): int
+    /**
+     * @return array{id: string, name: string, blastRadiusM: int, damage: int, falloff: string}
+     */
+    public static function specFor(string $weaponId): array
     {
         if (!self::isWeaponId($weaponId)) {
             throw new \InvalidArgumentException("blast: unknown weapon {$weaponId}");
         }
 
-        return FixedPoint::fromInt(self::RADIUS_M_INT[$weaponId]);
+        return Weapons::ALL[$weaponId];
+    }
+
+    public static function radiusFor(string $weaponId): int
+    {
+        return FixedPoint::fromInt(self::specFor($weaponId)['blastRadiusM']);
+    }
+
+    public static function damageFor(string $weaponId): int
+    {
+        return FixedPoint::fromInt(self::specFor($weaponId)['damage']);
     }
 
     /**
@@ -53,12 +56,39 @@ final class Blast
     }
 
     /**
-     * Distance and hit flag for every target, in input order.
+     * Damage a weapon deals at $distanceM from the impact point. Zero outside
+     * the radius.
+     */
+    public static function damageAt(string $weaponId, int $distanceM): int
+    {
+        if ($distanceM < 0) {
+            throw new \InvalidArgumentException('blast: distance must be non-negative');
+        }
+
+        $spec = self::specFor($weaponId);
+        $radius = FixedPoint::fromInt($spec['blastRadiusM']);
+        if (FixedPoint::cmp($distanceM, $radius) > 0) {
+            return FixedPoint::fromInt(0);
+        }
+
+        $full = FixedPoint::fromInt($spec['damage']);
+        if ('flat' === $spec['falloff']) {
+            return $full;
+        }
+
+        // Linear: full damage at the centre, zero at the edge.
+        $remaining = FixedPoint::sub(FixedPoint::fromInt(1), FixedPoint::div($distanceM, $radius));
+
+        return FixedPoint::mul($full, $remaining);
+    }
+
+    /**
+     * Distance, hit flag and damage for every target, in input order.
      *
      * @param array{x: int, y: int}       $center
      * @param list<array{x: int, y: int}> $targets
      *
-     * @return list<array{targetIndex: int, distanceM: int, withinRadius: bool}>
+     * @return list<array{targetIndex: int, distanceM: int, withinRadius: bool, damage: int}>
      */
     public static function resolve(array $center, string $weaponId, array $targets): array
     {
@@ -72,6 +102,7 @@ final class Blast
                 'distanceM' => $distanceM,
                 // Exactly on the radius counts as a hit.
                 'withinRadius' => FixedPoint::cmp($distanceM, $radius) <= 0,
+                'damage' => self::damageAt($weaponId, $distanceM),
             ];
         }
 
