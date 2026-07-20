@@ -24,6 +24,29 @@
     { "id": "scoring-split-7", "op": "scoring.split", "args": ["458752"], "expected": { "base": "91749", "suspected": "183498", "confirmed": "183505" } },
 
     { "id": "movepool-regen-1", "op": "movePool.regen", "args": [0, 10, 300000], "expected": "1" },
-    { "id": "movepool-regen-cap", "op": "movePool.regen", "args": [8, 10, 30000000], "expected": "10" }
+    { "id": "movepool-regen-cap", "op": "movePool.regen", "args": [8, 10, 30000000], "expected": "10" },
+
+    { "id": "level-xp-1", "op": "levelCurve.xpForLevel", "args": [1], "expected": "0" },
+    { "id": "level-xp-2", "op": "levelCurve.xpForLevel", "args": [2], "expected": "6553600" },
+    { "id": "level-xp-cap", "op": "levelCurve.xpForLevel", "args": [11], "expected": "279314432" },
+    { "id": "level-next-1", "op": "levelCurve.xpToNext", "args": [1], "expected": "6553600" },
+    { "id": "level-next-10", "op": "levelCurve.xpToNext", "args": [10], "expected": "69468160" },
+    { "id": "level-next-cap", "op": "levelCurve.xpToNext", "args": [11], "expected": "0" },
+    { "id": "level-for-xp-0", "op": "levelCurve.levelForXp", "args": ["0"], "expected": "1" },
+    { "id": "level-for-xp-thr5", "op": "levelCurve.levelForXp", "args": ["40566784"], "expected": "5" },
+    { "id": "level-for-xp-under", "op": "levelCurve.levelForXp", "args": ["40566783"], "expected": "4" },
+    { "id": "level-for-xp-over-cap", "op": "levelCurve.levelForXp", "args": ["999999999"], "expected": "11" },
+
+    { "id": "blast-radius-scout", "op": "blast.radiusFor", "args": ["scout"], "expected": "983040" },
+    { "id": "blast-radius-siege", "op": "blast.radiusFor", "args": ["siege"], "expected": "13107200" },
+
+    { "id": "fortify-decay-0", "op": "fortify.decayFactor", "args": [0], "expected": "65536" },
+    { "id": "fortify-decay-half-life", "op": "fortify.decayFactor", "args": [3600000], "expected": "32768" },
+    { "id": "fortify-decay-2", "op": "fortify.decayFactor", "args": [7200000], "expected": "16384" },
+    { "id": "fortify-decay-mid", "op": "fortify.decayFactor", "args": [1800000], "expected": "46341" },
+    { "id": "fortify-decay-exhausted", "op": "fortify.decayFactor", "args": [360000000], "expected": "0" },
+    { "id": "fortify-remaining", "op": "fortify.remainingShield", "args": ["6553600", 3600000], "expected": "3276800" },
+    { "id": "fortify-damage-absorbed", "op": "fortify.applyDamage", "args": ["3276800", "6553600", "1966080"], "expected": { "shieldHp": "1310720", "baseHp": "6553600", "spillover": "0" } },
+    { "id": "fortify-damage-spill", "op": "fortify.applyDamage", "args": ["3276800", "6553600", "4587520"], "expected": { "shieldHp": "0", "baseHp": "5242880", "spillover": "1310720" } }
   ]
 }

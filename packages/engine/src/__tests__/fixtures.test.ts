@@ -1,7 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import * as blast from '../blast.js';
 import * as fixedPoint from '../fixedPoint.js';
+import * as fortify from '../fortify.js';
+import * as levelCurve from '../levelCurve.js';
 import * as loot from '../loot.js';
 import * as movePool from '../movePool.js';
 import * as scoring from '../scoring.js';
@@ -22,9 +25,17 @@ const modules: Record<string, Record<string, (...a: never[]) => unknown>> = {
   loot: loot as never,
   scoring: scoring as never,
   movePool: movePool as never,
+  levelCurve: levelCurve as never,
+  blast: blast as never,
+  fortify: fortify as never,
 };
 
-const rawStringOps = new Set(['fromString', 'fixedPoint.fromString']);
+// Ops whose string argument is literal text, not a Fixed int64.
+const rawStringOps = new Set([
+  'fromString',
+  'fixedPoint.fromString',
+  'blast.radiusFor',
+]);
 
 function resolve(op: string): (...a: never[]) => unknown {
   const [modName, fnName] = op.includes('.') ? op.split('.') : ['fixedPoint', op];

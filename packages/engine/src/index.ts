@@ -10,6 +10,7 @@ export * as blast from './blast.js';
 export * as loot from './loot.js';
 export * as scoring from './scoring.js';
 export * as levelCurve from './levelCurve.js';
+export * as fortify from './fortify.js';
 export * as movePool from './movePool.js';
 export * as fixedPoint from './fixedPoint.js';
 
