@@ -2,7 +2,7 @@ name: Deploy production
 
 on:
   workflow_run:
-    workflows: ["CI"]
+    workflows: ['CI']
     types: [completed]
     branches: [main]
   workflow_dispatch:
@@ -37,7 +37,7 @@ jobs:
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.2"
+          php-version: '8.2'
           extensions: pdo, pdo_pgsql, sodium
           tools: composer:v2
 

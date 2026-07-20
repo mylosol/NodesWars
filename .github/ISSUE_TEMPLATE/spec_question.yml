@@ -1,7 +1,7 @@
 name: Spec question
 description: Ask a question about game rules, wire format, or ledger semantics.
-title: "spec: "
-labels: ["spec"]
+title: 'spec: '
+labels: ['spec']
 body:
   - type: textarea
     id: question

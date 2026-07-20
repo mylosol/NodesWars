@@ -1,7 +1,4 @@
 {
   "files": [],
-  "references": [
-    { "path": "./packages/engine" },
-    { "path": "./apps/pwa" }
-  ]
+  "references": [{ "path": "./packages/engine" }, { "path": "./apps/pwa" }]
 }

@@ -31,11 +31,7 @@ const modules: Record<string, Record<string, (...a: never[]) => unknown>> = {
 };
 
 // Ops whose string argument is literal text, not a Fixed int64.
-const rawStringOps = new Set([
-  'fromString',
-  'fixedPoint.fromString',
-  'blast.radiusFor',
-]);
+const rawStringOps = new Set(['fromString', 'fixedPoint.fromString', 'blast.radiusFor']);
 
 function resolve(op: string): (...a: never[]) => unknown {
   const [modName, fnName] = op.includes('.') ? op.split('.') : ['fixedPoint', op];
