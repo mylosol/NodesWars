@@ -30,28 +30,38 @@ const modules: Record<string, Record<string, (...a: never[]) => unknown>> = {
   fortify: fortify as never,
 };
 
-// Ops whose string argument is literal text, not a Fixed int64.
-const rawStringOps = new Set([
-  'fromString',
-  'fixedPoint.fromString',
-  'blast.radiusFor',
-]);
+// Argument positions holding literal text rather than a Fixed int64. This is
+// per argument, not per op, because blast.damageAt takes a weapon id *and* a
+// Fixed distance. The PHP runner keeps an identical table.
+const RAW_STRING_ARGS: Record<string, readonly number[]> = {
+  'fixedPoint.fromString': [0],
+  'blast.radiusFor': [0],
+  'blast.damageFor': [0],
+  'blast.damageAt': [0],
+  'loot.applyReward': [2],
+  'loot.effectiveMultiplier': [1],
+};
+
+/** Bare ops belong to fixedPoint. */
+function qualify(op: string): string {
+  return op.includes('.') ? op : `fixedPoint.${op}`;
+}
 
 function resolve(op: string): (...a: never[]) => unknown {
-  const [modName, fnName] = op.includes('.') ? op.split('.') : ['fixedPoint', op];
+  const [modName, fnName] = qualify(op).split('.');
   const fn = modules[modName as string]?.[fnName as string];
   if (typeof fn !== 'function') throw new Error(`unknown op ${op}`);
   return fn;
 }
 
-function coerceArg(op: string, a: string | number): unknown {
-  if (rawStringOps.has(op)) return a;
+function coerceArg(op: string, a: string | number, index: number): unknown {
+  if (RAW_STRING_ARGS[qualify(op)]?.includes(index)) return a;
   return typeof a === 'string' ? BigInt(a) : a;
 }
 
 function run(c: Case): unknown {
   const fn = resolve(c.op);
-  const args = c.args.map((a) => coerceArg(c.op, a));
+  const args = c.args.map((a, i) => coerceArg(c.op, a, i));
   return fn(...(args as never[]));
 }
 

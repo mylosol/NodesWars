@@ -27,6 +27,11 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      # The two engines must agree, so the weapon tables are generated rather
+      # than hand-written. This fails if they drift from data/weapons.json.
+      - name: Weapon tables up to date
+        run: pnpm gen:weapons:check
+
       - name: Typecheck
         run: pnpm typecheck
 

@@ -1,0 +1,60 @@
+{
+  "$comment": [
+    "Source of truth for the weapon roster. Add, remove or retune a weapon by",
+    "editing this file, then run: pnpm gen:weapons",
+    "",
+    "That regenerates packages/engine/src/weapons.generated.ts and",
+    "apps/api/src/Engine/Weapons.php. Never edit those by hand. CI fails if the",
+    "generated files disagree with this file, so the two engines cannot drift.",
+    "",
+    "Fields:",
+    "  id           stable key used in ledger payloads. Renaming one is a",
+    "               breaking wire-format change; adding one is not.",
+    "  name         display string for the UI. Safe to change freely.",
+    "  blastRadiusM blast radius in metres. Frozen spec: fixed radius per weapon.",
+    "  damage       damage at the centre of the blast, in HP.",
+    "  falloff      'linear' scales damage down to zero at the radius edge.",
+    "               'flat' deals full damage anywhere inside the radius.",
+    "",
+    "Damage values are placeholders pending balance testing. Radii were chosen",
+    "2026-07-20; note that 15 m is close to GPS accuracy of 5-10 m, so scout",
+    "near-misses will be contentious on a poor fix."
+  ],
+  "weapons": [
+    {
+      "id": "scout",
+      "name": "Scout Round",
+      "blastRadiusM": 15,
+      "damage": 20,
+      "falloff": "flat"
+    },
+    {
+      "id": "light",
+      "name": "Light Shell",
+      "blastRadiusM": 25,
+      "damage": 35,
+      "falloff": "linear"
+    },
+    {
+      "id": "medium",
+      "name": "Medium Shell",
+      "blastRadiusM": 50,
+      "damage": 55,
+      "falloff": "linear"
+    },
+    {
+      "id": "heavy",
+      "name": "Heavy Shell",
+      "blastRadiusM": 100,
+      "damage": 80,
+      "falloff": "linear"
+    },
+    {
+      "id": "siege",
+      "name": "Siege Mortar",
+      "blastRadiusM": 200,
+      "damage": 120,
+      "falloff": "linear"
+    }
+  ]
+}
