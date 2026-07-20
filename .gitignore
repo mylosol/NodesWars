@@ -30,6 +30,10 @@ test-results/
 !.vscode/extensions.json
 !.vscode/settings.json
 
+# Local caches written by the PHP toolchain.
+.php-cs-fixer.cache
+.phpunit.cache/
+
 # Legacy WHM deploy artifact; monorepo layout does not use it.
 public_html/
 
