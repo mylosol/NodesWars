@@ -40,7 +40,9 @@ final class FixtureTest extends TestCase
     {
         $path = \dirname(__DIR__, 4).'/test-fixtures/engine-cases.json';
         $raw = file_get_contents($path);
-        self::assertIsString($raw, "could not read {$path}");
+        if (false === $raw) {
+            throw new \RuntimeException("could not read {$path}");
+        }
 
         /** @var array{cases: list<array{id: string, op: string, args: array<int, mixed>, expected: string|array<string, string>}>} $decoded */
         $decoded = json_decode($raw, true, 512, \JSON_THROW_ON_ERROR);
@@ -54,7 +56,9 @@ final class FixtureTest extends TestCase
             ];
         }
 
-        self::assertNotEmpty($provided, 'fixture file has no cases');
+        if ([] === $provided) {
+            throw new \RuntimeException('fixture file has no cases');
+        }
 
         return $provided;
     }
@@ -66,7 +70,7 @@ final class FixtureTest extends TestCase
     #[DataProvider('caseProvider')]
     public function testMatchesFixture(array $case, string|array $expected): void
     {
-        $result = self::run($case['op'], $case['args']);
+        $result = self::invoke($case['op'], $case['args']);
 
         if (\is_string($expected)) {
             self::assertSame($expected, self::stringify($result));
@@ -124,7 +128,7 @@ final class FixtureTest extends TestCase
     /**
      * @param array<int, mixed> $args
      */
-    private static function run(string $op, array $args): mixed
+    private static function invoke(string $op, array $args): mixed
     {
         // Bare ops belong to fixedPoint.
         $qualified = str_contains($op, '.') ? $op : 'fixedPoint.'.$op;
