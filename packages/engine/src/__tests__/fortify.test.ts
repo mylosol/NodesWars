@@ -1,12 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as fp from '../fixedPoint.js';
-import {
-  HALF_LIFE_MS,
-  applyDamage,
-  decayFactor,
-  remainingShield,
-  stack,
-} from '../fortify.js';
+import { HALF_LIFE_MS, applyDamage, decayFactor, remainingShield, stack } from '../fortify.js';
 
 const near = (actual: fp.Fixed, expected: number, tolerance = 0.001) =>
   expect(Math.abs(fp.toNumber(actual) - expected)).toBeLessThan(tolerance);

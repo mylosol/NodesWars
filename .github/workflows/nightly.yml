@@ -2,7 +2,7 @@ name: Nightly
 
 on:
   schedule:
-    - cron: "17 5 * * *"
+    - cron: '17 5 * * *'
   workflow_dispatch:
 
 jobs:
@@ -33,7 +33,7 @@ jobs:
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.2"
+          php-version: '8.2'
           extensions: pdo, pdo_pgsql, sodium
           tools: composer:v2
 

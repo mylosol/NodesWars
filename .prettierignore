@@ -9,3 +9,19 @@ apps/api/vendor
 pnpm-lock.yaml
 composer.lock
 *.tsbuildinfo
+
+# Generated lookup tables. Regenerating them would undo any reformat, so
+# formatting them is churn at best and a false conflict at worst.
+packages/engine/src/sineTable.ts
+packages/engine/src/decayTable.ts
+
+# Untracked reference documents. They are not in the repository, so CI never
+# sees them, and a local `prettier --write .` would silently rewrite source
+# material that has no git copy to restore from.
+docs/HANDOFF.md
+docs/spec/
+
+# One golden fixture case per line, deliberately. Prettier would expand each
+# case to eight lines and turn a readable diff into an unreadable one. These
+# are the cross-language parity contract and get reviewed by eye.
+test-fixtures/engine-cases.json

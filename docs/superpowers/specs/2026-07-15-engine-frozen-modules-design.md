@@ -58,6 +58,7 @@ throws; the function never exceeds `max` or decreases below `current`.
 ## Testing
 
 `packages/engine/src/__tests__/{loot,scoring,movePool}.test.ts` (Vitest):
+
 - **loot:** multiplier at levels 1 (1.0), 5 (~0.6), 11 (0.0), 12 (clamped 0);
   applyReward scales a base reward.
 - **scoring:** split of 100 XP gives ~20 / ~40 / ~40 and the three sum to

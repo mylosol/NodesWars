@@ -9,12 +9,12 @@ gave numbers.
 
 ## Decisions taken
 
-| Question | Decision |
-| --- | --- |
-| Level scope | Persistent, account-level |
-| Grind to cap | About 500 confirmed hits |
-| Weapons | 5 tiers at 15 / 25 / 50 / 100 / 200 m |
-| Fortify half-life | 1 hour |
+| Question          | Decision                              |
+| ----------------- | ------------------------------------- |
+| Level scope       | Persistent, account-level             |
+| Grind to cap      | About 500 confirmed hits              |
+| Weapons           | 5 tiers at 15 / 25 / 50 / 100 / 200 m |
+| Fortify half-life | 1 hour                                |
 
 ## levelCurve
 
@@ -33,13 +33,13 @@ The ERD applies the reward multiplier `max(0, 1 - (level-1)/10)` to **XP as
 well as coins** ("Level 11+: 0% XP/Coins"). Combined with a rising curve, the
 grind is heavily back-loaded:
 
-| Level | XP to next | Multiplier | XP per confirmed hit | Hits |
-| ---: | ---: | ---: | ---: | ---: |
-| 1 | 100 | 1.0 | 40 | 2.5 |
-| 5 | 286 | 0.6 | 24 | 11.9 |
-| 8 | 627 | 0.3 | 12 | 52.2 |
-| 9 | 816 | 0.2 | 8 | 102.0 |
-| 10 | 1060 | 0.1 | 4 | 265.0 |
+| Level | XP to next | Multiplier | XP per confirmed hit |  Hits |
+| ----: | ---------: | ---------: | -------------------: | ----: |
+|     1 |        100 |        1.0 |                   40 |   2.5 |
+|     5 |        286 |        0.6 |                   24 |  11.9 |
+|     8 |        627 |        0.3 |                   12 |  52.2 |
+|     9 |        816 |        0.2 |                    8 | 102.0 |
+|    10 |       1060 |        0.1 |                    4 | 265.0 |
 
 Total: **499.2 confirmed hits**, of which **53% is the final level alone**.
 
