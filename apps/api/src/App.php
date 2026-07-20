@@ -27,6 +27,10 @@ final class App
             return $response->withHeader('Content-Type', 'application/json');
         });
 
+        // PHPStan 2 treats Slim's TContainerInterface template as invariant, so
+        // the declared and inferred App<ContainerInterface|null> never compare
+        // equal. Drop this once Slim annotates AppFactory::create() generically.
+        /** @phpstan-ignore return.type */
         return $app;
     }
 }

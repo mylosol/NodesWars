@@ -11,6 +11,19 @@
     { "id": "sqrt-2", "op": "sqrt", "args": ["131072"], "expected": "92681" },
     { "id": "sin-30", "op": "sinDeg", "args": ["1966080"], "expected": "32768" },
     { "id": "sin-210", "op": "sinDeg", "args": ["13762560"], "expected": "-32768" },
-    { "id": "cos-60", "op": "cosDeg", "args": ["3932160"], "expected": "32768" }
+    { "id": "cos-60", "op": "cosDeg", "args": ["3932160"], "expected": "32768" },
+
+    { "id": "loot-mult-1", "op": "loot.multiplier", "args": [1], "expected": "65536" },
+    { "id": "loot-mult-5", "op": "loot.multiplier", "args": [5], "expected": "39322" },
+    { "id": "loot-mult-11", "op": "loot.multiplier", "args": [11], "expected": "0" },
+    { "id": "loot-mult-12", "op": "loot.multiplier", "args": [12], "expected": "0" },
+    { "id": "loot-apply-lvl1", "op": "loot.applyReward", "args": ["6553600", 1], "expected": "6553600" },
+    { "id": "loot-apply-lvl11", "op": "loot.applyReward", "args": ["6553600", 11], "expected": "0" },
+
+    { "id": "scoring-split-100", "op": "scoring.split", "args": ["6553600"], "expected": { "base": "1310700", "suspected": "2621400", "confirmed": "2621500" } },
+    { "id": "scoring-split-7", "op": "scoring.split", "args": ["458752"], "expected": { "base": "91749", "suspected": "183498", "confirmed": "183505" } },
+
+    { "id": "movepool-regen-1", "op": "movePool.regen", "args": [0, 10, 300000], "expected": "1" },
+    { "id": "movepool-regen-cap", "op": "movePool.regen", "args": [8, 10, 30000000], "expected": "10" }
   ]
 }
