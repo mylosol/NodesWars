@@ -1,0 +1,23 @@
+# Normalize line endings to LF in the repository *and* in the working tree.
+#
+# Without this, core.autocrlf=true on Windows checks out CRLF while CI checks
+# out LF. Formatters then disagree with CI on every file: php-cs-fixer reports
+# all 14 PHP files as needing changes locally and none in CI, which makes the
+# local toolchain useless for pre-push checks.
+* text=auto eol=lf
+
+# Windows shell scripts genuinely need CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Never touch binaries.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.pdf binary
