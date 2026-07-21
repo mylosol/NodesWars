@@ -34,6 +34,14 @@ updates:
           - 'typescript'
           - 'prettier'
 
+    # typescript-eslint declares a peer range of typescript <6.1.0, so TS 6 and
+    # 7 fail lint outright (see #40). Ignoring the major keeps the rest of the
+    # group moving instead of being held back by a package that cannot land.
+    # Remove this once typescript-eslint ships support.
+    ignore:
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
+
   - package-ecosystem: 'composer'
     directory: '/apps/api'
     schedule:
