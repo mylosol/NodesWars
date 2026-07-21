@@ -26,7 +26,7 @@
     "@nodeswars/engine": "workspace:*"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.4.8",
+    "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.0.0",
     "@types/leaflet": "^1.9.12",
     "@types/react": "^19.2.17",
