@@ -22,9 +22,10 @@ const RADIUS_M_INT: Readonly<Record<WeaponId, number>> = {
 };
 
 export const BLAST_RADIUS_M: Readonly<Record<WeaponId, Fixed>> = Object.freeze(
-  Object.fromEntries(
-    Object.entries(RADIUS_M_INT).map(([id, m]) => [id, fromInt(m)]),
-  ) as Record<WeaponId, Fixed>,
+  Object.fromEntries(Object.entries(RADIUS_M_INT).map(([id, m]) => [id, fromInt(m)])) as Record<
+    WeaponId,
+    Fixed
+  >,
 );
 
 export function isWeaponId(id: string): id is WeaponId {
