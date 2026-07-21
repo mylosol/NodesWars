@@ -30,6 +30,8 @@ updates:
           - 'eslint'
           - 'eslint-*'
           - '@typescript-eslint/*'
+          - '@eslint/*'
+          - 'typescript'
           - 'prettier'
 
   - package-ecosystem: 'composer'
