@@ -68,3 +68,25 @@ fixture encoding is currently scalar-only. The TypeScript side has unit tests
 for it. Extending the encoding to cover struct arguments would let
 `trajectory.compute` and `blast.resolve` join the shared contract, and is the
 obvious next increment.
+
+## Update 2026-07-21: struct arguments
+
+The fixture encoding now handles structs and lists, closing the gap noted
+above. Arguments decode recursively (string is a Fixed, number is a plain int,
+object is a struct, array is a list), and results are normalised to a tree of
+strings before comparison. That one change covers scalars, nested structs and
+lists of structs without per-shape special cases.
+
+`trajectory.compute` and `blast.resolve` are now in the shared contract. Both
+were ported and unit tested before, but nothing proved the two engines agreed
+on them; a vacuum-parabola solver chaining sin, cos, mul and div is exactly
+where truncation differences would surface.
+
+Struct fields carrying literal text are listed in `RAW_STRING_FIELDS`
+(`weaponId`), mirroring `RAW_STRING_ARGS` one level down. A test in each runner
+asserts both tables, so they cannot drift silently.
+
+PHP keeps positional parameters where TypeScript takes an input object, so the
+PHP runner destructures rather than the fixture carrying two shapes.
+
+Fixtures: 169 to 183.

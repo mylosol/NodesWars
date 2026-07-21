@@ -8,14 +8,27 @@ import * as levelCurve from '../levelCurve.js';
 import * as loot from '../loot.js';
 import * as movePool from '../movePool.js';
 import * as scoring from '../scoring.js';
+import * as trajectory from '../trajectory.js';
 
-// A case's `op` is "module.fn" (or bare, meaning fixedPoint). Args encode their
-// type by JSON type: a string is a Fixed int64, a number is a plain int. The one
-// exception is fromString, whose argument is a decimal string. `expected` is a
-// string for a scalar Fixed/number result, or an object for a struct result.
-// This encoding is language-agnostic so the PHP port runs the same JSON.
-type Expected = string | Record<string, string>;
-type Case = { id: string; op: string; args: (string | number)[]; expected: Expected };
+// A case's `op` is "module.fn" (or bare, meaning fixedPoint).
+//
+// Arguments encode their type by JSON type, recursively:
+//   string  a Fixed int64
+//   number  a plain int
+//   object  a struct; every value is decoded by these same rules
+//   array   a list; every element is decoded by these same rules
+//
+// The exception is arguments listed in RAW_STRING_ARGS, whose string is
+// literal text (a decimal for fromString, a weapon id for blast).
+//
+// `expected` is the result with every leaf rendered as a string, in the same
+// shape the function returns. Comparison normalises the actual result the same
+// way and deep-equals, so scalars, structs, nested structs and lists of structs
+// all work without special cases.
+//
+// The encoding is language-agnostic: the PHP engine runs the same JSON.
+type Json = string | number | boolean | Json[] | { [k: string]: Json };
+type Case = { id: string; op: string; args: Json[]; expected: Json };
 
 const path = fileURLToPath(new URL('../../../../test-fixtures/engine-cases.json', import.meta.url));
 const { cases } = JSON.parse(readFileSync(path, 'utf8')) as { cases: Case[] };
@@ -28,6 +41,7 @@ const modules: Record<string, Record<string, (...a: never[]) => unknown>> = {
   levelCurve: levelCurve as never,
   blast: blast as never,
   fortify: fortify as never,
+  trajectory: trajectory as never,
 };
 
 // Argument positions holding literal text rather than a Fixed int64. This is
@@ -42,6 +56,10 @@ const RAW_STRING_ARGS: Record<string, readonly number[]> = {
   'loot.effectiveMultiplier': [1],
 };
 
+// Struct fields holding literal text. Same idea as RAW_STRING_ARGS, one level
+// down: blast.resolve takes its weapon id inside the input object.
+const RAW_STRING_FIELDS = new Set(['weaponId']);
+
 /** Bare ops belong to fixedPoint. */
 function qualify(op: string): string {
   return op.includes('.') ? op : `fixedPoint.${op}`;
@@ -54,14 +72,36 @@ function resolve(op: string): (...a: never[]) => unknown {
   return fn;
 }
 
-function coerceArg(op: string, a: string | number, index: number): unknown {
-  if (RAW_STRING_ARGS[qualify(op)]?.includes(index)) return a;
-  return typeof a === 'string' ? BigInt(a) : a;
+/** Decodes one argument value, recursing through structs and lists. */
+function decode(value: Json, raw: boolean): unknown {
+  if (Array.isArray(value)) return value.map((v) => decode(v, raw));
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([k, v]) => [k, decode(v, RAW_STRING_FIELDS.has(k))]),
+    );
+  }
+  if (raw) return value;
+  return typeof value === 'string' ? BigInt(value) : value;
+}
+
+/** Renders a result so every leaf is a string, preserving shape. */
+function normalise(value: unknown): Json {
+  if (Array.isArray(value)) return value.map(normalise);
+  if (typeof value === 'bigint' || typeof value === 'number') return String(value);
+  if (typeof value === 'boolean') return value ? 'true' : 'false';
+  if (typeof value === 'string') return value;
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([k, v]) => [k, normalise(v)]),
+    );
+  }
+  throw new Error(`cannot normalise ${String(value)}`);
 }
 
 function run(c: Case): unknown {
   const fn = resolve(c.op);
-  const args = c.args.map((a, i) => coerceArg(c.op, a, i));
+  const raw = RAW_STRING_ARGS[qualify(c.op)] ?? [];
+  const args = c.args.map((a, i) => decode(a, raw.includes(i)));
   return fn(...(args as never[]));
 }
 
@@ -69,17 +109,10 @@ describe('engine golden fixtures', () => {
   it('has cases', () => {
     expect(cases.length).toBeGreaterThan(0);
   });
+
   for (const c of cases) {
     it(`${c.id} (${c.op})`, () => {
-      const result = run(c);
-      if (typeof c.expected === 'string') {
-        expect(String(result)).toBe(c.expected);
-      } else {
-        const obj = result as Record<string, unknown>;
-        for (const [field, value] of Object.entries(c.expected)) {
-          expect(String(obj[field])).toBe(value);
-        }
-      }
+      expect(normalise(run(c))).toEqual(c.expected);
     });
   }
 });
