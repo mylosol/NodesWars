@@ -20,8 +20,8 @@
     "dexie": "^4.0.8",
     "framer-motion": "^11.3.28",
     "leaflet": "^1.9.4",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "zustand": "^5.0.14",
     "@nodeswars/engine": "workspace:*"
   },
