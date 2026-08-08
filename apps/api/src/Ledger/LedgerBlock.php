@@ -47,7 +47,10 @@ final class LedgerBlock
      * @param non-empty-string $prevHash hex, 64 chars; zero string for genesis
      * @param non-empty-string $payload
      * @param non-empty-string $signature 64 byte Ed25519 signature, binary
-     * @param non-empty-string $publicKey 32 byte Ed25519 public key, binary
+     * @param string            $publicKey 32 byte Ed25519 public key, binary.
+     *                                     May be empty when a block is read
+     *                                     back from storage (the key lives on
+     *                                     the players table, not the block).
      */
     public static function create(
         string $matchId,
