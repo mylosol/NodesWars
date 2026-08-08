@@ -27,12 +27,16 @@ final class App
     {
         $container = new \DI\Container();
         $container->set(\PDO::class, static function (): \PDO {
-            $dsn = getenv('DATABASE_URL');
-            if ($dsn === false || $dsn === '') {
+            // phpdotenv 5.x fills $_ENV but NOT putenv(), so getenv() alone
+            // misses .env values. Check $_ENV first, fall back to getenv()
+            // for real environment variables (CI, tests, systemd).
+            $env = static fn (string $key): string => (string) ($_ENV[$key] ?? getenv($key) ?: '');
+            $dsn = $env('DATABASE_URL');
+            if ($dsn === '') {
                 throw new \RuntimeException('DATABASE_URL is not set');
             }
-            $user = getenv('DATABASE_USER') ?: 'postgres';
-            $pass = getenv('DATABASE_PASSWORD') ?: '';
+            $user = $env('DATABASE_USER') ?: 'postgres';
+            $pass = $env('DATABASE_PASSWORD');
 
             return new \PDO($dsn, $user, $pass, [
                 \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
