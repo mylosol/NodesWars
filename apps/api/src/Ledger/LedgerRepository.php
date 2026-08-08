@@ -118,6 +118,66 @@ final class LedgerRepository
     }
 
     /**
+     * Fetches all blocks in a match for the given players, ordered by
+     * (player_id, seq_no). Only blocks belonging to $playerIds are returned,
+     * so a caller can scope a sync to exactly the players in a match without
+     * leaking blocks from other matches.
+     *
+     * @param list<string> $playerIds
+     *
+     * @return list<LedgerBlock>
+     */
+    public function allBlocksForMatch(string $matchId, array $playerIds, int $sinceSeqNo = 0): array
+    {
+        if ($playerIds === []) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($playerIds), '?'));
+        $stmt = $this->pdo->prepare(
+            <<<SQL
+            SELECT match_id, player_id, seq_no, prev_hash, payload, sig, lamport_ts, hash
+            FROM ledger_blocks
+            WHERE match_id = ? AND player_id IN ($placeholders) AND seq_no >= ?
+            ORDER BY player_id ASC, seq_no ASC
+            SQL,
+        );
+        $params = array_merge([$matchId], $playerIds, [$sinceSeqNo]);
+        $stmt->execute($params);
+
+        $blocks = [];
+        while (($row = $stmt->fetch(PDO::FETCH_ASSOC)) !== false) {
+            $blocks[] = $this->rowToBlock($row);
+        }
+
+        return $blocks;
+    }
+
+    /**
+     * The player's registered Ed25519 public key, or null when the player
+     * does not exist. The key lives on the players table (HANDOFF: identity
+     * section) — it is NOT stored on blocks. Signature checks must verify
+     * against this registered key, never a client supplied key.
+     */
+    public function playerPublicKey(string $playerId): ?string
+    {
+        $stmt = $this->pdo->prepare('SELECT ed25519_pubkey FROM players WHERE id = ?');
+        $stmt->execute([$playerId]);
+
+        $raw = $stmt->fetchColumn();
+        if ($raw === false) {
+            return null;
+        }
+
+        // Real PDO pgsql returns bytea columns as stream resources (verified
+        // against Postgres 16). PHPStan's PDO stubs type fetchColumn() as
+        // string|false, so it flags the resource branch as dead — it is not;
+        // the string branch exists for drivers that return plain strings.
+        /** @phpstan-ignore ternary.alwaysFalse */
+        return is_resource($raw) ? (string) stream_get_contents($raw) : (string) $raw;
+    }
+
+    /**
      * Deletes a player's blocks from seqNo (inclusive) onward. Used after
      * equivocation slashing to roll back the player's downstream state.
      */
