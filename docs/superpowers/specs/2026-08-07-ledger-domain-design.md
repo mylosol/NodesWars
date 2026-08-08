@@ -16,12 +16,12 @@ encoding so the TS port has a target.
 
 Implemented in this slice, all under `apps/api/src/Ledger/`:
 
-| Class | Responsibility |
-|---|---|
-| `LedgerBlock` | Immutable signed block, canonical preimage, hash, genesis flag |
-| `Ed25519` | Sign/verify wrappers over ext-sodium |
+| Class            | Responsibility                                                                      |
+| ---------------- | ----------------------------------------------------------------------------------- |
+| `LedgerBlock`    | Immutable signed block, canonical preimage, hash, genesis flag                      |
+| `Ed25519`        | Sign/verify wrappers over ext-sodium                                                |
 | `ChainValidator` | Per player chain rules (prevHash link, seqNo +1, Lamport non decreasing, signature) |
-| `ForkResolver` | Same seqNo conflict: Lamport timestamp, hash tiebreak, equivocation slashing |
+| `ForkResolver`   | Same seqNo conflict: Lamport timestamp, hash tiebreak, equivocation slashing        |
 
 Schema already exists (`db/migrations/0004_ledger_blocks.sql`), unchanged.
 
