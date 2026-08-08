@@ -38,9 +38,13 @@ prevHash(64 hex chars) || seqNo(u64 BE) || lamportTs(u64 BE) || payload(raw)
 - `seqNo` and `lamportTs` are unsigned 64 bit, big endian (`pack('J')`).
 - `payload` is the raw CBOR action payload bytes, appended verbatim.
 
-Block hash = `BLAKE2b-512(preimage)` hex encoded (libsodium
-`sodium_crypto_generichash`, 64 byte output). The TS port must use an
-identical BLAKE2b 512 (e.g. @noble/hashes blake2b) and pack u64s the same way.
+Block hash = `BLAKE2b(preimage)` via `sodium_crypto_generichash` (libsodium
+default: **32 byte output, BLAKE2b-256**, hex encoded). The TS port uses
+`@noble/hashes` blake2b with `dkLen: 32` to match. NOTE: an earlier draft of
+this doc said BLAKE2b-512 — that is WRONG for this codebase. libsodium's
+one-argument `sodium_crypto_generichash` returns 32 bytes (BLAKE2b-256), and
+the deployed PHP (PR #55) and TS port (PR #57) are pinned to that via golden
+fixtures. Do not "fix" the hash length without re-pinning both sides.
 
 Genesis block: `prevHash = 64 zeros`, `seqNo = 0`.
 
