@@ -91,4 +91,14 @@ jobs:
             open -u $SSH_USER, sftp://$HOST;
             put /tmp/nodeswars-api.env -o \"$API_TARGET/.env\";
           "
+          # Diagnostics: confirm the .env landed where the app looks for it
+          # (index.php resolves __DIR__/.. = one level above public/). Only
+          # booleans and paths are printed — never secret values.
+          ssh -a -x -i "$KEY_FILE" -p ${PORT:-22} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$SSH_USER@$HOST" '
+            API_TARGET="$1"
+            echo "diag API_TARGET=$API_TARGET"
+            if [ -f "$API_TARGET/.env" ]; then echo "diag env_exists=yes"; else echo "diag env_exists=NO"; fi
+            if [ -f "$API_TARGET/public/index.php" ]; then echo "diag index_php=yes"; else echo "diag index_php=NO"; fi
+            grep -c "^DATABASE_" "$API_TARGET/.env" 2>/dev/null | sed "s/^/diag env_lines=/"
+          ' _ "$API_TARGET"
           rm -f "$KEY_FILE" /tmp/nodeswars-api.env
