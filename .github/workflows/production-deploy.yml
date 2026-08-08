@@ -56,6 +56,9 @@ jobs:
           PORT: ${{ secrets.WHM_SSH_PORT }}
           PWA_TARGET: ${{ secrets.WHM_PROD_PWA_PATH }}
           API_TARGET: ${{ secrets.WHM_PROD_API_PATH }}
+          DB_URL: ${{ secrets.DATABASE_URL }}
+          DB_USER: ${{ secrets.POSTGRESQL_USER }}
+          DB_PASS: ${{ secrets.POSTGRESQL_PASS }}
         run: |
           set -eo pipefail
           KEY_FILE="$(mktemp)"
@@ -71,4 +74,21 @@ jobs:
             mirror --reverse --delete --verbose --no-perms --exclude '\.htaccess' apps/pwa/dist/ \"$PWA_TARGET\";
             mirror --reverse --delete --verbose --no-perms --exclude 'tests/' --exclude '\.env' apps/api/ \"$API_TARGET\";
           "
-          rm -f "$KEY_FILE"
+          # The API .env is deliberately excluded from the mirror so it
+          # survives deploys. Write it from the production environment
+          # secrets instead (idempotent — same content every deploy).
+          # Quoted heredoc: never printf, a % in a password would corrupt it.
+          cat > /tmp/nodeswars-api.env <<ENVEOF
+          DATABASE_URL=${DB_URL}
+          DATABASE_USER=${DB_USER}
+          DATABASE_PASSWORD=${DB_PASS}
+          ENVEOF
+          lftp -c "
+            set sftp:connect-program \"$CONNECT\";
+            set net:max-retries 2;
+            set net:timeout 20;
+            set sftp:auto-confirm yes;
+            open -u $SSH_USER, sftp://$HOST;
+            put /tmp/nodeswars-api.env -o \"$API_TARGET/.env\";
+          "
+          rm -f "$KEY_FILE" /tmp/nodeswars-api.env
