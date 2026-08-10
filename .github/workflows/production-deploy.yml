@@ -137,10 +137,6 @@ jobs:
             DB_NAME="$(echo "$DB_URL" | sed -n 's/.*dbname=\([^;]*\).*/\1/p')"
             DB_PORT="${DB_PORT:-5432}"
             PSQL="psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -v ON_ERROR_STOP=1"
-            # pgcrypto provides gen_random_uuid() on old PG; on PG13+ it is a
-            # built-in. Creating the extension can fail if the role lacks
-            # privilege, so make it non-fatal (the built-in covers us).
-            $PSQL -c "CREATE EXTENSION IF NOT EXISTS pgcrypto" || echo "migrate NOTICE: pgcrypto extension not created (may be built-in)"
             for f in /tmp/nodeswars-migrations/00*.sql; do
               echo "migrate: $(basename "$f")"
               if $PSQL -f "$f" 2>/tmp/mig.err; then
