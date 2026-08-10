@@ -93,7 +93,7 @@ jobs:
           "
           rm -f "$KEY_FILE" /tmp/nodeswars-api.env
 
-      - name: "Probe DB connection on host (safe: lengths + exception class only)"
+      - name: 'Probe DB connection on host (safe: lengths + exception class only)'
         if: always()
         env:
           SSH_KEY: ${{ secrets.WHM_SSH_KEY }}
