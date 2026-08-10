@@ -193,7 +193,15 @@ jobs:
           CONNECT="ssh -a -x -i $KEY_FILE -p ${PORT:-22} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
           # The web FPM workers are long-lived; they loaded .env / opcache
           # before the schema existed and will not pick up changes until they
-          # recycle. Send SIGHUP to the per-user php-fpm/lsphp workers (owned
-          # by the deploy user on DirectAdmin) so they reload. Best-effort.
-          $CONNECT "$SSH_USER@$HOST" "pkill -HUP lsphp 2>/dev/null; pkill -HUP php-fpm 2>/dev/null; true" || true
+          # recycle. Diagnose the actual PHP process names, then SIGHUP them.
+          $CONNECT "$SSH_USER@$HOST" "bash -s" <<'RELEOF'
+            echo "php-procs: $(ps -eo pid,user,args 2>/dev/null | grep -i php | grep -v grep | head -20 | tr '\n' '|')"
+            pkill -HUP lsphp 2>/dev/null && echo "reload: HUP lsphp ok" || echo "reload: no lsphp"
+            pkill -HUP -f php-fpm 2>/dev/null && echo "reload: HUP php-fpm ok" || echo "reload: no php-fpm"
+            # Try the DirectAdmin per-user fpm master pid file if present.
+            for pf in /usr/local/php*/etc/php-fpm.conf /var/run/php-fpm.pid /opt/alt/*/etc/php-fpm.d/*.conf; do
+              [ -e "$pf" ] && echo "fpm-conf: $pf"
+            done
+            true
+          RELEOF
           rm -f "$KEY_FILE"
