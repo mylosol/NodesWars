@@ -176,3 +176,24 @@ jobs:
           "
           $CONNECT "$SSH_USER@$HOST" "bash /tmp/diag-api-env.sh '$API_TARGET'" || true
           rm -f "$KEY_FILE"
+
+      - name: 'Restart web PHP workers (reload .env + opcache)'
+        if: always()
+        env:
+          SSH_KEY: ${{ secrets.WHM_SSH_KEY }}
+          HOST: ${{ secrets.WHM_HOST }}
+          SSH_USER: ${{ secrets.WHM_USER }}
+          PORT: ${{ secrets.WHM_SSH_PORT }}
+          API_TARGET: ${{ secrets.WHM_PROD_API_PATH }}
+        run: |
+          set -eo pipefail
+          KEY_FILE="$(mktemp)"
+          printf '%s\n' "$SSH_KEY" > "$KEY_FILE"
+          chmod 600 "$KEY_FILE"
+          CONNECT="ssh -a -x -i $KEY_FILE -p ${PORT:-22} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+          # The web FPM workers are long-lived; they loaded .env / opcache
+          # before the schema existed and will not pick up changes until they
+          # recycle. Send SIGHUP to the per-user php-fpm/lsphp workers (owned
+          # by the deploy user on DirectAdmin) so they reload. Best-effort.
+          $CONNECT "$SSH_USER@$HOST" "pkill -HUP lsphp 2>/dev/null; pkill -HUP php-fpm 2>/dev/null; true" || true
+          rm -f "$KEY_FILE"
