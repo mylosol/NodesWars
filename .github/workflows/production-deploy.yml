@@ -93,6 +93,59 @@ jobs:
           "
           rm -f "$KEY_FILE" /tmp/nodeswars-api.env
 
+      - name: 'Apply DB migrations on host (idempotent)'
+        if: always()
+        env:
+          SSH_KEY: ${{ secrets.WHM_SSH_KEY }}
+          HOST: ${{ secrets.WHM_HOST }}
+          SSH_USER: ${{ secrets.WHM_USER }}
+          PORT: ${{ secrets.WHM_SSH_PORT }}
+          API_TARGET: ${{ secrets.WHM_PROD_API_PATH }}
+        run: |
+          set -eo pipefail
+          KEY_FILE="$(mktemp)"
+          printf '%s\n' "$SSH_KEY" > "$KEY_FILE"
+          chmod 600 "$KEY_FILE"
+          CONNECT="ssh -a -x -i $KEY_FILE -p ${PORT:-22} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+          # Upload the migration files, then run them on the host via the
+          # host's psql (Postgres is local). Connection params are read from
+          # the .env the deploy just wrote. Migrations use IF NOT EXISTS, so
+          # re-running is safe.
+          lftp -c "
+            set sftp:connect-program \"$CONNECT\";
+            set net:max-retries 2;
+            set net:timeout 20;
+            set sftp:auto-confirm yes;
+            open -u $SSH_USER, sftp://$HOST;
+            mkdir -p /tmp/nodeswars-migrations;
+            put -O /tmp/nodeswars-migrations db/migrations/0001_players.sql;
+            put -O /tmp/nodeswars-migrations db/migrations/0002_matches.sql;
+            put -O /tmp/nodeswars-migrations db/migrations/0003_match_players.sql;
+            put -O /tmp/nodeswars-migrations db/migrations/0004_ledger_blocks.sql;
+            put -O /tmp/nodeswars-migrations db/migrations/0005_npns.sql;
+            put -O /tmp/nodeswars-migrations db/migrations/0006_leaderboards.sql;
+          "
+          $CONNECT "$SSH_USER@$HOST" "bash -s '$API_TARGET'" <<'MIGEOF'
+            set -e
+            ENV_FILE="$1/.env"
+            DB_URL="$(grep '^DATABASE_URL=' "$ENV_FILE" | tail -1 | cut -d= -f2-)"
+            DB_USER="$(grep '^DATABASE_USER=' "$ENV_FILE" | tail -1 | cut -d= -f2-)"
+            DB_PASS="$(grep '^DATABASE_PASSWORD=' "$ENV_FILE" | tail -1 | cut -d= -f2-)"
+            export PGPASSWORD="$DB_PASS"
+            # Parse pgsql:host=H;port=P;dbname=D
+            DB_HOST="$(echo "$DB_URL" | sed -n 's/.*host=\([^;]*\).*/\1/p')"
+            DB_PORT="$(echo "$DB_URL" | sed -n 's/.*port=\([^;]*\).*/\1/p')"
+            DB_NAME="$(echo "$DB_URL" | sed -n 's/.*dbname=\([^;]*\).*/\1/p')"
+            DB_PORT="${DB_PORT:-5432}"
+            for f in /tmp/nodeswars-migrations/00*.sql; do
+              echo "migrate: $(basename "$f")"
+              psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -v ON_ERROR_STOP=1 -f "$f" \
+                || echo "migrate FAILED: $(basename "$f")"
+            done
+            echo "migrate done"
+          MIGEOF
+          rm -f "$KEY_FILE"
+
       - name: 'Probe DB connection on host (safe: lengths + exception class only)'
         if: always()
         env:
