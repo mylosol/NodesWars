@@ -43,9 +43,15 @@ try {
         PDO::ATTR_TIMEOUT => 5,
     ]);
     echo "diag connect=ok\n";
+    # First real query - proves the connection can execute SQL, not just open.
+    $pdo->query("SELECT 1")->fetchColumn();
+    echo "diag query_select1=ok\n";
+    # Does the schema exist? to_regclass returns the oid or null (no error either way).
+    $tbl = $pdo->query("SELECT to_regclass('public.matches')")->fetchColumn();
+    echo "diag matches_table=" . ($tbl === false || $tbl === null ? "MISSING" : "exists") . "\n";
     echo "diag result=CONNECTED\n";
 } catch (Throwable $e) {
-    $msg = substr($e->getMessage(), 0, 120);
+    $msg = substr($e->getMessage(), 0, 160);
     echo "diag connect=" . get_class($e) . " code=" . $e->getCode() . " msg=" . $msg . "\n";
     echo "diag result=CONNECT_FAILED\n";
 }

@@ -25,3 +25,7 @@ docs/spec/
 # case to eight lines and turn a readable diff into an unreadable one. These
 # are the cross-language parity contract and get reviewed by eye.
 test-fixtures/engine-cases.json
+
+# Shell scripts - prettier has no shell parser; CI's `prettier --check .` would
+# error on them. Format shell by hand / shfmt if needed.
+scripts/*.sh
