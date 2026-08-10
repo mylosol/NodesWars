@@ -46,9 +46,9 @@ try {
     # First real query - proves the connection can execute SQL, not just open.
     $pdo->query("SELECT 1")->fetchColumn();
     echo "diag query_select1=ok\n";
-    # Does the schema exist? Query information_schema so we don't trip the
-    # parser on to_regclass('public.matches').
-    $cnt = $pdo->query("SELECT count(*) FROM information_schema.tables WHERE table_name = 'matches'")->fetchColumn();
+    # Does the schema exist? Query information_schema instead of to_regclass
+    # (to_regclass with a schema-qualified literal trips the SQL parser).
+    $cnt = $pdo->query("SELECT count(*) FROM information_schema.tables WHERE table_name = " . chr(39) . "matches" . chr(39))->fetchColumn();
     echo "diag matches_table=" . ($cnt > 0 ? "exists" : "MISSING") . "\n";
     echo "diag result=CONNECTED\n";
 } catch (Throwable $e) {
