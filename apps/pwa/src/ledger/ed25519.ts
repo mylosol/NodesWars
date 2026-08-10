@@ -1,4 +1,4 @@
-import { ed25519 } from '@noble/curves/ed25519';
+import { ed25519 } from '@noble/curves/ed25519.js';
 
 /**
  * Thin deterministic wrapper around @noble/curves Ed25519.
