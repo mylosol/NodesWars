@@ -76,7 +76,7 @@ jobs:
           "
           # The API .env is deliberately excluded from the mirror so it
           # survives deploys. Write it from the production environment
-          # secrets instead (idempotent — same content every deploy).
+          # secrets instead (idempotent - same content every deploy).
           # Quoted heredoc: never printf, a % in a password would corrupt it.
           cat > /tmp/nodeswars-api.env <<ENVEOF
           DATABASE_URL=${DB_URL}
@@ -92,3 +92,30 @@ jobs:
             put /tmp/nodeswars-api.env -o \"$API_TARGET/.env\";
           "
           rm -f "$KEY_FILE" /tmp/nodeswars-api.env
+
+      - name: 'Probe DB connection on host (safe: lengths + exception class only)'
+        if: always()
+        env:
+          SSH_KEY: ${{ secrets.WHM_SSH_KEY }}
+          HOST: ${{ secrets.WHM_HOST }}
+          SSH_USER: ${{ secrets.WHM_USER }}
+          PORT: ${{ secrets.WHM_SSH_PORT }}
+          API_TARGET: ${{ secrets.WHM_PROD_API_PATH }}
+        run: |
+          set -eo pipefail
+          KEY_FILE="$(mktemp)"
+          printf '%s\n' "$SSH_KEY" > "$KEY_FILE"
+          chmod 600 "$KEY_FILE"
+          CONNECT="ssh -a -x -i $KEY_FILE -p ${PORT:-22} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+          # Upload the probe, then run it on the host. It prints ONLY
+          # booleans/lengths/exception class+code - never secret values.
+          lftp -c "
+            set sftp:connect-program \"$CONNECT\";
+            set net:max-retries 2;
+            set net:timeout 20;
+            set sftp:auto-confirm yes;
+            open -u $SSH_USER, sftp://$HOST;
+            put scripts/diag-api-env.sh -o /tmp/diag-api-env.sh;
+          "
+          $CONNECT "$SSH_USER@$HOST" "bash /tmp/diag-api-env.sh '$API_TARGET'" || true
+          rm -f "$KEY_FILE"
