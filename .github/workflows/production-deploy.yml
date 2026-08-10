@@ -132,15 +132,23 @@ jobs:
             DB_USER="$(grep '^DATABASE_USER=' "$ENV_FILE" | tail -1 | cut -d= -f2-)"
             DB_PASS="$(grep '^DATABASE_PASSWORD=' "$ENV_FILE" | tail -1 | cut -d= -f2-)"
             export PGPASSWORD="$DB_PASS"
-            # Parse pgsql:host=H;port=P;dbname=D
             DB_HOST="$(echo "$DB_URL" | sed -n 's/.*host=\([^;]*\).*/\1/p')"
             DB_PORT="$(echo "$DB_URL" | sed -n 's/.*port=\([^;]*\).*/\1/p')"
             DB_NAME="$(echo "$DB_URL" | sed -n 's/.*dbname=\([^;]*\).*/\1/p')"
             DB_PORT="${DB_PORT:-5432}"
+            PSQL="psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -v ON_ERROR_STOP=1"
+            # pgcrypto provides gen_random_uuid() on old PG; on PG13+ it is a
+            # built-in. Creating the extension can fail if the role lacks
+            # privilege, so make it non-fatal (the built-in covers us).
+            $PSQL -c "CREATE EXTENSION IF NOT EXISTS pgcrypto" || echo "migrate NOTICE: pgcrypto extension not created (may be built-in)"
             for f in /tmp/nodeswars-migrations/00*.sql; do
               echo "migrate: $(basename "$f")"
-              psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -v ON_ERROR_STOP=1 -f "$f" \
-                || echo "migrate FAILED: $(basename "$f")"
+              if $PSQL -f "$f" 2>/tmp/mig.err; then
+                echo "migrate OK: $(basename "$f")"
+              else
+                echo "migrate FAILED: $(basename "$f")"
+                cat /tmp/mig.err
+              fi
             done
             echo "migrate done"
           MIGEOF
