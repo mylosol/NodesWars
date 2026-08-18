@@ -63,3 +63,11 @@ psql "$DATABASE_URL" -f db/migrations/0002_matches.sql
 ## Deployment
 
 Deploys happen from GitHub Actions. The workflow rsyncs the built artifacts to WHM over SSH using a deploy key stored in the `preview` or `production` GitHub Environment. Nothing deploys automatically from local checkouts.
+
+## License and Use
+
+**Source-available for reference only. This is not open source.**
+
+Copyright (c) 2026 Robert (mylosol). All Rights Reserved. See [LICENSE](LICENSE).
+
+The source is public so it can be read, but no rights are granted to use, copy, modify, fork, redistribute, or ship any part of it. Contributions are not accepted, and pull requests will not be merged. If you want to use any of this, contact the copyright holder for written permission.
